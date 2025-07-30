@@ -1,7 +1,7 @@
 {
   "name": "matoryaibot",
-  "version": "1.0.0",
-  "description": "Career Chatbot for Telegram (Syria) and Twilio WhatsApp (Abroad)",
+  "version": "1.2.0",
+  "description": "Career Chatbot for Telegram Webhook and Twilio WhatsApp",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

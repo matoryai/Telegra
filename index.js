@@ -2,17 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const telegramBot = require('./telegram');
+const telegramRouter = require('./telegram');
 const twilioBot = require('./twilio');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// WhatsApp webhook
 app.post('/incoming', twilioBot);
-
-// Telegram polling handled inside telegram.js
+app.use('/telegram', telegramRouter);
 
 app.get('/', (req, res) => res.send('Career Chatbot Running'));
 
