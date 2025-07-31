@@ -1,18 +1,31 @@
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
+const TelegramBot = require('node-telegram-bot-api');
+const { askOpenAI } = require('./openai');
 
-const telegramRouter = require('./telegram');
-const twilioBot = require('./twilio');
+const token = process.env.TELEGRAM_TOKEN;
+const bot = new TelegramBot(token, { polling: true });
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    const name = msg.from.first_name || 'صديقي';
+    bot.sendMessage(chatId, `👋 أهلاً ${name}! أنا مساعدك المهني من MatoryAI.\n\nما نوع الوظيفة أو المهارة أو التدريب الذي تهتم به أكثر؟`);
+});
 
-app.post('/incoming', twilioBot);
-app.use('/telegram', telegramRouter);
+bot.on('message', async (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+    const name = msg.from.first_name || 'غير معروف';
 
-app.get('/', (req, res) => res.send('Career Chatbot Running'));
+    // Skip /start to avoid duplicate replies
+    if (text.toLowerCase().startsWith('/start')) return;
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    // Log user interaction
+    console.log(`[${chatId}] ${name}: ${text}`);
+
+    try {
+        const reply = await askOpenAI(text);
+        bot.sendMessage(chatId, reply);
+    } catch (err) {
+        console.error('Error handling message:', err);
+        bot.sendMessage(chatId, '⚠️ عذراً، حدث خطأ ما. حاول مرة أخرى لاحقاً.');
+    }
+});
